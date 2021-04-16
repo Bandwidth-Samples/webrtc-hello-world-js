@@ -41,19 +41,19 @@ cp .env.default .env
 ```
 
 Add your Bandwidth account settings to `.env`:
-- ACCOUNT_ID
-- USERNAME
-- PASSWORD
+- BW_ACCOUNT_ID
+- BW_USERNAME
+- BW_PASSWORD
 
 Add your Voice API application information:
-- VOICE_APPLICATION_ID
+- BW_VOICE_APPLICATION_ID
 
 Enter your local server address (e.g. ngrok url):
 - BASE_CALLBACK_URL
 
 To make an outbound call from the browser, add a phone number to dial:
-- OUTBOUND_PHONE_NUMBER
-- FROM_NUMBER (the number that will appear as the FROM for the call)
+- USER_NUMBER
+- BW_NUMBER (the number that will appear as the FROM for the call)
 
 You can ignore any other settings in the `.env.default` file.
 
@@ -69,7 +69,7 @@ node server.js
 Browse to [http://localhost:3000](http://localhost:3000) and grant permission to use your microphone.
 
 - clicking *Get Online* will get a token for your browser, get you connected to our media server, and start media flowing from the browser
-- clicking *Dial out* will request the server to start a call out to OUTBOUND_PHONE_NUMBER via the Voice API
+- clicking *Dial out* will request the server to start a call out to USER_NUMBER via the Voice API
 - clicking *End Call* will request the server to hangup the outbound call
 
 You should now be able to make and receive calls using your browser! The web UI will indicate when you are connected.

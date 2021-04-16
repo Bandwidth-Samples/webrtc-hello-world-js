@@ -13,15 +13,15 @@ app.use(express.static("public"));
 // config
 const port = 3000;
 const localDir = __dirname;
-const accountId = process.env.ACCOUNT_ID;
+const accountId = process.env.BW_ACCOUNT_ID;
 
 // Global variables
-BandwidthWebRTC.Configuration.basicAuthUserName = process.env.USERNAME;
-BandwidthWebRTC.Configuration.basicAuthPassword = process.env.PASSWORD;
+BandwidthWebRTC.Configuration.basicAuthUserName = process.env.BW_USERNAME;
+BandwidthWebRTC.Configuration.basicAuthPassword = process.env.BW_PASSWORD;
 var webRTCController = BandwidthWebRTC.APIController;
 
-BandwidthVoice.Configuration.basicAuthUserName = process.env.USERNAME;
-BandwidthVoice.Configuration.basicAuthPassword = process.env.PASSWORD;
+BandwidthVoice.Configuration.basicAuthUserName = process.env.BW_USERNAME;
+BandwidthVoice.Configuration.basicAuthPassword = process.env.BW_PASSWORD;
 var voiceController = BandwidthVoice.APIController;
 
 // create a map of PSTN calls that will persist
@@ -66,11 +66,11 @@ app.get("/startPSTNCall", async (req, res) => {
 
     await addParticipantToSession(accountId, participant.id, session_id);
 
-    console.log("start the PSTN call to", process.env.OUTBOUND_PHONE_NUMBER);
+    console.log("start the PSTN call to", process.env.USER_NUMBER);
     callResponse = await initiateCallToPSTN(
       accountId,
-      process.env.FROM_NUMBER,
-      process.env.OUTBOUND_PHONE_NUMBER
+      process.env.BW_NUMBER,
+      process.env.USER_NUMBER
     );
 
     // store the token with the participant for later use
@@ -122,7 +122,7 @@ app.get("/endPSTNCall", async (req, res) => {
     res.send({ status: "hungup" });
   } catch (error) {
     console.log(
-      `error hanging up ${process.env.OUTBOUND_PHONE_NUMBER}:`,
+      `error hanging up ${process.env.USER_NUMBER}:`,
       error
     );
     res.status(500).send({ status: "call hangup failed" });
@@ -244,7 +244,7 @@ async function initiateCallToPSTN(account_id, from_number, to_number) {
   var body = new BandwidthVoice.ApiCreateCallRequest({
     from: from_number,
     to: to_number,
-    applicationId: process.env.VOICE_APPLICATION_ID,
+    applicationId: process.env.BW_VOICE_APPLICATION_ID,
     answerUrl: process.env.BASE_CALLBACK_URL + "callAnswered",
     answerMethod: "POST",
     callTimeout: "30",
