@@ -42,14 +42,6 @@ let calls = new Map();
 let sessionId = false;
 let callId = false;
 
-// Check to make sure required environment variables are set
-if (!accountId || !username || !password) {
-  console.error(
-      "ERROR! Please set the BW_ACCOUNT_ID, BW_USERNAME, and BW_PASSWORD environment variables before running this app"
-  );
-  process.exit(1);
-}
-
 /**
  * Setup the call and pass info to the browser so they can join
  */
