@@ -12,10 +12,18 @@ app.use(bodyParser.json());
 app.use(express.static("public"));
 
 // config
-const port = process.env.PORT || 3000;
+const port = 3000;
 const accountId = process.env.BW_ACCOUNT_ID;
 const username = process.env.BW_USERNAME;
 const password = process.env.BW_PASSWORD;
+
+// Check to make sure required environment variables are set
+if (!accountId || !username || !password) {
+  console.error(
+      "ERROR! Please set the BW_ACCOUNT_ID, BW_USERNAME, and BW_PASSWORD environment variables before running this app"
+  );
+  process.exit(1);
+}
 
 // Global variables
 BandwidthWebRTC.Configuration.basicAuthUserName = process.env.BW_USERNAME;
@@ -33,14 +41,6 @@ let calls = new Map();
 //  - if not a demo, these would be stored in persistant storage
 let sessionId = false;
 let callId = false;
-
-// Check to make sure required environment variables are set
-if (!accountId || !username || !password) {
-  console.error(
-      "ERROR! Please set the BW_ACCOUNT_ID, BW_USERNAME, and BW_PASSWORD environment variables before running this app"
-  );
-  process.exit(1);
-}
 
 /**
  * Setup the call and pass info to the browser so they can join
