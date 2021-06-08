@@ -27,18 +27,17 @@ if (!accountId || !username || !password) {
 }
 
 // Global variables
-
 const {Client: WebRTCClient, ApiController: WebRTCController} = BandwidthWebRTC;
 const webrtcClient = new WebRTCClient({
-  basicAuthUserName: process.env.BW_USERNAME,
-  basicAuthPassword: process.env.BW_PASSWORD
+  basicAuthUserName: username,
+  basicAuthPassword: password
 });
 var webRTCController = new WebRTCController(webrtcClient);
 
 const {Client: VoiceClient, ApiController: VoiceController} = BandwidthVoice;
 const voiceClient = new VoiceClient({
-  basicAuthUserName: process.env.BW_USERNAME,
-  basicAuthPassword: process.env.BW_PASSWORD
+  basicAuthUserName: username,
+  basicAuthPassword: password
 });
 var voiceController = new VoiceController(voiceClient);
 
