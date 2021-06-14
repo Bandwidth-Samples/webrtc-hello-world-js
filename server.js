@@ -180,7 +180,7 @@ async function getSessionId(tag) {
   console.log("No session found, creating one");
   // otherwise, create the session
   // tags are useful to audit or manage billing records
-  var sessionBody = { tag: tag };
+  const sessionBody = { tag: tag };
 
   try {
     let sessionResponse = await webRTCController.createSession(
@@ -206,7 +206,7 @@ async function getSessionId(tag) {
  */
 async function createParticipant(tag) {
   // create a participant for this browser user
-  var participantBody = {
+  const participantBody = {
     tag: tag,
     publishPermissions: ["AUDIO"],
     deviceApiVersion: "V3"
@@ -232,7 +232,7 @@ async function createParticipant(tag) {
  * @param sessionId The session to add this participant to
  */
 async function addParticipantToSession(participantId, sessionId) {
-  var body = { sessionId: sessionId };
+  const body = { sessionId: sessionId };
 
   try {
     await webRTCController.addParticipantToSession(
@@ -251,12 +251,13 @@ async function addParticipantToSession(participantId, sessionId) {
 
 /**
  * Start a call out to the PSTN
- * @param fromNumber the FROM on the call
- * @param toNumber the number to call
+ * @param account_id The id for this account
+ * @param from_number the FROM on the call
+ * @param to_number the number to call
  */
 async function initiateCallToPSTN(fromNumber, toNumber) {
   // call body, see here for more details: https://dev.bandwidth.com/voice/methods/calls/postCalls.html
-  var body = {
+  const body = {
     from: fromNumber,
     to: toNumber,
     applicationId: process.env.BW_VOICE_APPLICATION_ID,
@@ -274,7 +275,7 @@ async function initiateCallToPSTN(fromNumber, toNumber) {
  */
 async function endCallToPSTN(callId) {
   // call body, see here for more details: https://dev.bandwidth.com/voice/methods/calls/postCallsCallId.html
-  var body = {
+  const body = {
     state: "completed"
   };
   try {
