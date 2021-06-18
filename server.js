@@ -32,17 +32,17 @@ const webrtcClient = new WebRTCClient({
   basicAuthUserName: username,
   basicAuthPassword: password
 });
-var webRTCController = new WebRTCController(webrtcClient);
+const webRTCController = new WebRTCController(webrtcClient);
 
 const {Client: VoiceClient, ApiController: VoiceController} = BandwidthVoice;
 const voiceClient = new VoiceClient({
   basicAuthUserName: username,
   basicAuthPassword: password
 });
-var voiceController = new VoiceController(voiceClient);
+const voiceController = new VoiceController(voiceClient);
 
 // create a map of PSTN calls that will persist
-let calls = new Map();
+const calls = new Map();
 
 // track our session ID and phone call Id
 //  - if not a demo, these would be stored in persistent storage
