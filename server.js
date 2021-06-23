@@ -276,7 +276,8 @@ async function initiateCallToPSTN(fromNumber, toNumber) {
 async function endCallToPSTN(callId) {
   // call body, see here for more details: https://dev.bandwidth.com/voice/methods/calls/postCallsCallId.html
   const body = {
-    state: "completed"
+    state: "completed",
+    redirectUrl: "foo"
   };
   try {
     await voiceController.modifyCall(accountId, callId, body);
