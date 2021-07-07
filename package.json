@@ -1,5 +1,5 @@
 {
-  "name": "webrtc-simple",
+  "name": "webrtc-hello-world-js",
   "version": "1.0.0",
   "description": "a simple node webrtc app",
   "main": "server.js",
@@ -9,13 +9,14 @@
   },
   "author": "",
   "license": "ISC",
+  "type": "module",
   "dependencies": {
-    "@bandwidth/voice": "^1.5.0",
-    "@bandwidth/webrtc": "^0.6.3",
+    "@bandwidth/voice": "^2.0.2",
+    "@bandwidth/webrtc": "^1.1.0",
     "body-parser": "^1.19.0",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
-    "jwt-decode": "^3.0.0-beta.2",
+    "jwt-decode": "^3.0.0",
     "uuid": "^8.3.0"
   }
 }

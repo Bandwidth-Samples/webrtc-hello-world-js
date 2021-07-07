@@ -1,12 +1,13 @@
-const express = require("express");
-const BandwidthWebRTC = require("@bandwidth/webrtc");
-const BandwidthVoice = require("@bandwidth/voice");
-const uuid = require("uuid");
-const dotenv = require("dotenv");
-const app = express();
-const bodyParser = require("body-parser");
+import express from "express";
+import bodyParser from "body-parser";
+import BandwidthWebRTC from "@bandwidth/webrtc";
+import BandwidthVoice from "@bandwidth/voice";
+import { v1 as uuidv1 } from "uuid";
+import dotenv from "dotenv";
 
 dotenv.config();
+
+const app = express();
 
 app.use(bodyParser.json());
 app.use(express.static("public"));
@@ -26,21 +27,27 @@ if (!accountId || !username || !password) {
 }
 
 // Global variables
-BandwidthWebRTC.Configuration.basicAuthUserName = process.env.BW_USERNAME;
-BandwidthWebRTC.Configuration.basicAuthPassword = process.env.BW_PASSWORD;
-var webRTCController = BandwidthWebRTC.APIController;
+const {Client: WebRTCClient, ApiController: WebRTCController} = BandwidthWebRTC;
+const webrtcClient = new WebRTCClient({
+  basicAuthUserName: username,
+  basicAuthPassword: password
+});
+const webRTCController = new WebRTCController(webrtcClient);
 
-BandwidthVoice.Configuration.basicAuthUserName = process.env.BW_USERNAME;
-BandwidthVoice.Configuration.basicAuthPassword = process.env.BW_PASSWORD;
-var voiceController = BandwidthVoice.APIController;
+const {Client: VoiceClient, ApiController: VoiceController} = BandwidthVoice;
+const voiceClient = new VoiceClient({
+  basicAuthUserName: username,
+  basicAuthPassword: password
+});
+const voiceController = new VoiceController(voiceClient);
 
 // create a map of PSTN calls that will persist
-let calls = new Map();
+const calls = new Map();
 
 // track our session ID and phone call Id
-//  - if not a demo, these would be stored in persistant storage
-let sessionId = false;
-let callId = false;
+//  - if not a demo, these would be stored in persistent storage
+let currentSessionId = false;
+let currentCallId = false;
 
 /**
  * Setup the call and pass info to the browser so they can join
@@ -49,11 +56,11 @@ app.get("/startBrowserCall", async (req, res) => {
   console.log("setup browser client");
   try {
     // create the session
-    let session_id = await getSessionId(accountId, "session-test");
+    let sessionId = await getSessionId("session-test");
 
-    let [participant, token] = await createParticipant(accountId, uuid.v1());
+    let [participant, token] = await createParticipant(uuidv1());
 
-    await addParticipantToSession(accountId, participant.id, session_id);
+    await addParticipantToSession(participant.id, sessionId);
     // now that we have added them to the session, we can send back the token they need to join
     res.send({
       message: "created participant and setup session",
@@ -70,24 +77,23 @@ app.get("/startBrowserCall", async (req, res) => {
  */
 app.get("/startPSTNCall", async (req, res) => {
   try {
-    session_id = await getSessionId();
+    let sessionId = await getSessionId();
 
-    let [participant, token] = await createParticipant(accountId, uuid.v1());
+    let [participant, token] = await createParticipant(uuidv1());
 
-    await addParticipantToSession(accountId, participant.id, session_id);
+    await addParticipantToSession(participant.id, sessionId);
 
     console.log("start the PSTN call to", process.env.USER_NUMBER);
-    callResponse = await initiateCallToPSTN(
-      accountId,
+    let callResponse = await initiateCallToPSTN(
       process.env.BW_NUMBER,
       process.env.USER_NUMBER
     );
 
     // store the token with the participant for later use
     participant.token = token;
-    callId = callResponse.callId;
+    currentCallId = callResponse.result.callId;
 
-    calls.set(callResponse.callId, participant);
+    calls.set(currentCallId, participant);
     res.send({ status: "ringing" });
   } catch (error) {
     console.log("Failed to start PSTN call:", error);
@@ -99,6 +105,7 @@ app.get("/startPSTNCall", async (req, res) => {
  * Bandwidth's Voice API will hit this endpoint when an outgoing call is answered
  */
 app.post("/callAnswered", async (req, res) => {
+  let callId = req.body.callId;
   console.log(
     `received answered callback for call ${callId} to ${req.body.to}`
   );
@@ -112,8 +119,8 @@ app.post("/callAnswered", async (req, res) => {
 
   // This is the response payload that we will send back to the Voice API to transfer the call into the WebRTC session
   // Use the SDK to generate this BXML
-  console.log(`transferring call ${callId} to session ${sessionId}`);
-  const bxml = webRTCController.generateTransferBxml(participant.token);
+  console.log(`transferring call ${callId} to session ${currentSessionId}`);
+  const bxml = WebRTCController.generateTransferBxml(participant.token);
 
   // Send the payload back to the Voice API
   res.contentType("application/xml").send(bxml);
@@ -126,9 +133,9 @@ app.post("/callAnswered", async (req, res) => {
 app.get("/endPSTNCall", async (req, res) => {
   console.log("Hanging up PSTN call");
   try {
-    session_id = await getSessionId();
+    await getSessionId();
 
-    await endCallToPSTN(accountId, callId);
+    await endCallToPSTN(currentCallId);
     res.send({ status: "hungup" });
   } catch (error) {
     console.log(
@@ -150,40 +157,40 @@ app.listen(port, () => {
 // All the functions for interacting with Bandwidth WebRTC services below here
 //
 /**
- * @param session_id
+ * @param sessionId New current session ID
  */
-function saveSessionId(session_id) {
+function saveSessionId(sessionId) {
   // saved globally for simplicity of demo
-  sessionId = session_id;
+  currentSessionId = sessionId;
+  console.log('Saved session %s', sessionId);
 }
 /**
  * Return the session id
  * This will either create one via the API, or return the one already created for this session
- * @param account_id
  * @param tag
  * @return a Session id
  */
-async function getSessionId(account_id, tag) {
+async function getSessionId(tag) {
   // check if we've already created a session for this call
   //  - this is a simplification we're doing for this demo
-  if (sessionId) {
-    return sessionId;
+  if (currentSessionId) {
+    return currentSessionId;
   }
 
   console.log("No session found, creating one");
   // otherwise, create the session
   // tags are useful to audit or manage billing records
-  var sessionBody = new BandwidthWebRTC.Session({ tag: tag });
+  const sessionBody = { tag: tag };
 
   try {
     let sessionResponse = await webRTCController.createSession(
-      account_id,
+      accountId,
       sessionBody
     );
     // saves it for future use, this would normally be stored with meeting/call/appt details
-    saveSessionId(sessionResponse.id);
+    saveSessionId(sessionResponse.result.id);
 
-    return sessionResponse.id;
+    return sessionResponse.result.id;
   } catch (error) {
     console.log("Failed to create session:", error);
     throw new Error(
@@ -194,17 +201,16 @@ async function getSessionId(account_id, tag) {
 
 /**
  *  Create a new participant
- * @param account_id
  * @param tag to tag the participant with, no PII should be placed here
  * @return list: (a Participant json object, the participant token)
  */
-async function createParticipant(account_id, tag) {
+async function createParticipant(tag) {
   // create a participant for this browser user
-  var participantBody = new BandwidthWebRTC.Participant({
+  const participantBody = {
     tag: tag,
     publishPermissions: ["AUDIO"],
     deviceApiVersion: "V3"
-  });
+  };
 
   try {
     let createResponse = await webRTCController.createParticipant(
@@ -212,7 +218,7 @@ async function createParticipant(account_id, tag) {
       participantBody
     );
 
-    return [createResponse.participant, createResponse.token];
+    return [createResponse.result.participant, createResponse.result.token];
   } catch (error) {
     console.log("failed to create Participant", error);
     throw new Error(
@@ -222,18 +228,17 @@ async function createParticipant(account_id, tag) {
 }
 
 /**
- * @param account_id The id for this account
- * @param participant_id a Participant id
- * @param session_id The session to add this participant to
+ * @param participantId a Participant id
+ * @param sessionId The session to add this participant to
  */
-async function addParticipantToSession(account_id, participant_id, session_id) {
-  var body = new BandwidthWebRTC.Subscriptions({ sessionId: session_id });
+async function addParticipantToSession(participantId, sessionId) {
+  const body = { sessionId: sessionId };
 
   try {
     await webRTCController.addParticipantToSession(
       accountId,
-      session_id,
-      participant_id,
+      sessionId,
+      participantId,
       body
     );
   } catch (error) {
@@ -250,30 +255,32 @@ async function addParticipantToSession(account_id, participant_id, session_id) {
  * @param from_number the FROM on the call
  * @param to_number the number to call
  */
-async function initiateCallToPSTN(account_id, from_number, to_number) {
+async function initiateCallToPSTN(fromNumber, toNumber) {
   // call body, see here for more details: https://dev.bandwidth.com/voice/methods/calls/postCalls.html
-  var body = new BandwidthVoice.ApiCreateCallRequest({
-    from: from_number,
-    to: to_number,
+  const body = {
+    from: fromNumber,
+    to: toNumber,
     applicationId: process.env.BW_VOICE_APPLICATION_ID,
     answerUrl: process.env.BASE_CALLBACK_URL + "/callAnswered",
     answerMethod: "POST",
     callTimeout: "30",
-  });
+  };
 
   return await voiceController.createCall(accountId, body);
 }
 
 /**
  * End the PSTN call
- * @param account_id The id for this account
- * @param call_id The id of the call
+ * @param callId The id of the call
  */
-async function endCallToPSTN(account_id, call_id) {
+async function endCallToPSTN(callId) {
   // call body, see here for more details: https://dev.bandwidth.com/voice/methods/calls/postCallsCallId.html
-  var body = new BandwidthVoice.ApiModifyCallRequest({ state: "completed" });
+  const body = {
+    state: "completed",
+    redirectUrl: "foo"
+  };
   try {
-    await voiceController.modifyCall(accountId, call_id, body);
+    await voiceController.modifyCall(accountId, callId, body);
   } catch (error) {
     console.log("Failed to hangup the call", error);
     throw error;
