@@ -120,7 +120,7 @@ app.post("/callAnswered", async (req, res) => {
   // This is the response payload that we will send back to the Voice API to transfer the call into the WebRTC session
   // Use the SDK to generate this BXML
   console.log(`transferring call ${callId} to session ${currentSessionId}`);
-  const bxml = WebRTCController.generateTransferBxml(participant.token);
+  const bxml = WebRTCController.generateTransferBxml(participant.token, callId);
 
   // Send the payload back to the Voice API
   res.contentType("application/xml").send(bxml);
