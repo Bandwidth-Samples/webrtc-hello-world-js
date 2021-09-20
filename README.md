@@ -20,6 +20,10 @@ To run this sample, you'll need a Bandwidth phone number, Voice API credentials 
 
 This sample will need be publicly accessible to the internet in order for Bandwidth API callbacks to work properly. Otherwise you'll need a tool like [ngrok](https://ngrok.com) to provide access from Bandwidth API callbacks to localhost.
 
+```
+./ngrok http 3000
+```
+> Note: This app was hardcoded to run on  `http://localhost:3000`. If you want to run it on a different port, you must change the port in both `server.js` and `public/index.html`.
 ### Create a Bandwidth Voice API application
 
 Follow the steps in [How to Create a Voice API Application](https://support.bandwidth.com/hc/en-us/articles/360035060934-How-to-Create-a-Voice-API-Application-V2-) to create your Voice API appliation.

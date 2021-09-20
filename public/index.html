@@ -4,7 +4,8 @@
     <!-- we recommend hosting this yourself, github is not always the best CDN -->
     <script src="https://github.com/Bandwidth/webrtc-browser/releases/download/0.9.1/BandwidthRtc.bundle.js"></script>
     <script language="javascript">
-      const basePath = "http://localhost:3000";
+      const port = 3000;
+      const basePath = "http://localhost:"+port;
       const bandwidthRtc = new BandwidthRtc();
 
       /**
