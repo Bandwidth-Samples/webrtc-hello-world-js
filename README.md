@@ -10,7 +10,7 @@ This app runs an HTTP server that listens for requests from browsers to get conn
 
 The server connects to Bandwidth's HTTP WebRTC API, which it will use to create a session and participant IDs. This example leverages our Node SDK to make the WebRTC and Voice API calls.
 
-The web browser will also use a websocket managed by the WebRTC browser SDK to handle signaling to the WebRTC API - this is all handled by a prepackaged Javascript SDK. Once both a browser and a phone have joined the conference, they will be able to talk to each other.
+The web browser will also use a websocket managed by the WebRTC browser SDK to handle signaling to the WebRTC API - this is all handled by a prepackaged Javascript SDK. Once both a browser and a phone have joined the conference, they will be able to talk to each other.  This demo includes the webpack bundle of the WebRTC browser SDK.  The browser SDK itself, along with the associated documentation is available on [the Bandwidth Repo](https://github.com/Bandwidth/webrtc-browser)
 
 > Note: This is a very simplistic demo and it is not designed to handle multiple browsers or multiple phones.<br/> Unless you are running on `localhost`, you will need to use HTTPS. Most modern browsers require a secure context when accessing cameras and microphones.
 
